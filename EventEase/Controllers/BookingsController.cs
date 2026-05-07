@@ -22,13 +22,12 @@ namespace EventEase.Controllers
         // GET: Bookings
         public async Task<IActionResult> Index(string searchString)
         {
-            // This part stays similar, but we add .AsQueryable() to allow filtering
+            
             var bookings = _context.Bookings
                 .Include(b => b.Event)
                 .Include(b => b.Venue)
                 .AsQueryable();
 
-            // Insert this "if" block right here
             if (!string.IsNullOrEmpty(searchString))
             {
                 bookings = bookings.Where(b => b.Event.EventName.Contains(searchString)

@@ -153,12 +153,12 @@ namespace EventEase.Controllers
 
             if (venue != null)
             {
-                _context.Venues.Remove(venue);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
         private bool EventExists(int id)
         {
             return _context.Events.Any(e => e.EventID == id);

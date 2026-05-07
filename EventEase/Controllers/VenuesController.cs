@@ -8,6 +8,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using EventEase.Data;
+using EventEase.Models;
 
 namespace EventEase.Controllers
 {
@@ -57,21 +62,7 @@ namespace EventEase.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("VenueID,Name,Location,Capacity")] Venue venue, IFormFile imageFile)
         {
-            if (imageFile != null && imageFile.Length > 0)
-            {
-                // 1. Get reference to the container
-                var containerClient = _blobServiceClient.GetBlobContainerClient("venue-images");
-                await containerClient.CreateIfNotExistsAsync();
-
-                // 2. Create a unique filename
-                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-                var blobClient = containerClient.GetBlobClient(fileName);
-
-                // 3. Upload the file
-                using (var stream = imageFile.OpenReadStream())
-                {
                     await blobClient.UploadAsync(stream, true);
                 }
 
@@ -182,6 +173,7 @@ namespace EventEase.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
         private bool VenueExists(int id)
         {
             return _context.Venues.Any(e => e.VenueID == id);

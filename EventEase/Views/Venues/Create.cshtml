@@ -32,12 +32,7 @@
             </div>
 
             <div class="form-group">
-                <label class="control-label">Venue Image</label>
-                <input type="file" name="imageFile" class="form-control" accept="image/*" />
-                <span class="text-info">Select a photo to upload to Azure Storage</span>
             </div>
-
-            <div class="form-group mt-3">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>
@@ -49,7 +44,4 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
 }

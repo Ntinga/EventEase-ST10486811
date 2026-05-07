@@ -71,10 +71,9 @@ namespace EventEase.Controllers
 
                 if (isBooked)
                 {
-                    // Adding an alert for the user
-                    ModelState.AddModelError("", "This venue is already booked for the selected dates.");
                     ViewData["EventID"] = new SelectList(_context.Events, "EventID", "EventName", booking.EventID);
                     ViewData["VenueID"] = new SelectList(_context.Venues, "VenueID", "Name", booking.VenueID);
+
                     return View(booking);
                 }
 

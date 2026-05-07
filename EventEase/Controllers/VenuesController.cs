@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http; // Added for IFormFile
+using Microsoft.AspNetCore.Http;
 
 namespace EventEase.Controllers
 {
@@ -135,6 +135,13 @@ namespace EventEase.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            bool hasActiveBookings = await _context.Bookings.AnyAsync(b => b.VenueID == id && b.EndDate >= DateTime.Now);
+
+            if (hasActiveBookings)
+            {
+                TempData["AlertMessage"] = "Restriction: This venue cannot be deleted because it has an active booking.";
+                return RedirectToAction(nameof(Index));
+            }
             var venue = await _context.Venues.FindAsync(id);
 
             // Check for active bookings

@@ -20,10 +20,22 @@ namespace EventEase.Controllers
         }
 
         // GET: Bookings
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            var appDbContext = _context.Bookings.Include(b => b.Event).Include(b => b.Venue);
-            return View(await appDbContext.ToListAsync());
+            // This part stays similar, but we add .AsQueryable() to allow filtering
+            var bookings = _context.Bookings
+                .Include(b => b.Event)
+                .Include(b => b.Venue)
+                .AsQueryable();
+
+            // Insert this "if" block right here
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                bookings = bookings.Where(b => b.Event.EventName.Contains(searchString)
+                                            || b.BookingID.ToString() == searchString);
+            }
+
+            return View(await bookings.ToListAsync());
         }
 
         // GET: Bookings/Details/5

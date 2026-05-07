@@ -135,30 +135,22 @@ namespace EventEase.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            bool hasActiveBookings = await _context.Bookings.AnyAsync(b => b.VenueID == id && b.EndDate >= DateTime.Now);
-
-            if (hasActiveBookings)
-            {
-                TempData["AlertMessage"] = "Restriction: This venue cannot be deleted because it has an active booking.";
-                return RedirectToAction(nameof(Index));
-            }
-            var venue = await _context.Venues.FindAsync(id);
-
-            // Check for active bookings
-            bool hasBookings = _context.Bookings.Any(b => b.VenueID == id);
+            // Check for any bookings tied to this venue
+            bool hasBookings = await _context.Bookings.AnyAsync(b => b.VenueID == id);
 
             if (hasBookings)
             {
-                TempData["Error"] = "Cannot delete venue because it is associated with active bookings.";
+                TempData["AlertMessage"] = "Restriction: This venue cannot be deleted because it is associated with active or past bookings.";
                 return RedirectToAction(nameof(Index));
             }
 
+            var venue = await _context.Venues.FindAsync(id);
             if (venue != null)
             {
                 _context.Venues.Remove(venue);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

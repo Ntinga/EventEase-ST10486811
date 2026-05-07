@@ -100,8 +100,8 @@ namespace EventEase.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["EventID"] = new SelectList(_context.Events, "EventID", "EventID", booking.EventID);
-            ViewData["VenueID"] = new SelectList(_context.Venues, "VenueID", "VenueID", booking.VenueID);
+            ViewData["EventID"] = new SelectList(_context.Events, "EventID", "EventName", booking.EventID);
+            ViewData["VenueID"] = new SelectList(_context.Venues, "VenueID", "Name", booking.VenueID);
             return View(booking);
         }
         // GET: Bookings/Edit/5

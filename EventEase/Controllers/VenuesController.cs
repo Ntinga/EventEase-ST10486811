@@ -1,22 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Azure.Storage.Blobs;
+using EventEase.Data;
+using EventEase.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using EventEase.Data;
-using EventEase.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace EventEase.Controllers
 {
     public class VenuesController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly BlobServiceClient _blobServiceClient;
 
-        public VenuesController(AppDbContext context)
+        public VenuesController(AppDbContext context, BlobServiceClient blobServiceClient)
         {
             _context = context;
+            _blobServiceClient = blobServiceClient;
         }
 
         // GET: Venues
@@ -54,8 +57,28 @@ namespace EventEase.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("VenueID,Name,Location,Capacity,ImageURL")] Venue venue)
+        public async Task<IActionResult> Create([Bind("VenueID,Name,Location,Capacity")] Venue venue, IFormFile imageFile)
         {
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                // 1. Get reference to the container
+                var containerClient = _blobServiceClient.GetBlobContainerClient("venue-images");
+                await containerClient.CreateIfNotExistsAsync();
+
+                // 2. Create a unique filename
+                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                var blobClient = containerClient.GetBlobClient(fileName);
+
+                // 3. Upload the file
+                using (var stream = imageFile.OpenReadStream())
+                {
+                    await blobClient.UploadAsync(stream, true);
+                }
+
+                // 4. Save the local URL to the database
+                venue.ImageURL = blobClient.Uri.ToString();
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(venue);

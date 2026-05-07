@@ -8,9 +8,9 @@
         public DateTime StartDate {  get; set; }
         public DateTime EndDate { get; set; }
 
-        public virtual Venue Venue {  get; set; }
+        public virtual Venue? Venue {  get; set; }
 
-        public virtual Event Event { get; set; }
+        public virtual Event? Event { get; set; }
 
     }
 }

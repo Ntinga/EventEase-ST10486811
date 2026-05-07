@@ -63,7 +63,6 @@ namespace EventEase.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Checking for a double booking
                 bool isBooked = _context.Bookings.Any(b =>
                     b.VenueID == booking.VenueID &&
                     booking.StartDate < b.EndDate &&
@@ -71,9 +70,17 @@ namespace EventEase.Controllers
 
                 if (isBooked)
                 {
+                    ModelState.AddModelError("", "The selected venue is already booked during this time period.");
                     ViewData["EventID"] = new SelectList(_context.Events, "EventID", "EventName", booking.EventID);
                     ViewData["VenueID"] = new SelectList(_context.Venues, "VenueID", "Name", booking.VenueID);
+                    return View(booking);
+                }
 
+                if (booking.EndDate <= booking.StartDate)
+                {
+                    ModelState.AddModelError("EndDate", "The End Date must be after the Start Date.");
+                    ViewData["EventID"] = new SelectList(_context.Events, "EventID", "EventName", booking.EventID);
+                    ViewData["VenueID"] = new SelectList(_context.Venues, "VenueID", "Name", booking.VenueID);
                     return View(booking);
                 }
 
@@ -81,11 +88,11 @@ namespace EventEase.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
             ViewData["EventID"] = new SelectList(_context.Events, "EventID", "EventID", booking.EventID);
             ViewData["VenueID"] = new SelectList(_context.Venues, "VenueID", "VenueID", booking.VenueID);
             return View(booking);
         }
-
         // GET: Bookings/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {

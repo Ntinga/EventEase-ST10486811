@@ -1,14 +1,15 @@
 ﻿using Azure.Storage.Blobs;
 using EventEase.Data;
 using EventEase.Models;
+using EventEase.ViewModels;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using MongoDB.Driver;
 
 namespace EventEase.Controllers
 {
@@ -27,7 +28,18 @@ namespace EventEase.Controllers
         public async Task<IActionResult> Index()
         {
             var venues = await _context.Venues.Find(Builders<Venue>.Filter.Empty).ToListAsync();
-            return View(venues);
+            var bookings = await _context.Bookings.Find(Builders<Booking>.Filter.Empty).ToListAsync();
+
+            var venueVMs = venues.Select(v => new VenueViewModel
+            {
+                VenueID = v.VenueID,
+                Name = v.Name,
+                Location = v.Location,
+                Capacity = v.Capacity,
+                ImageURL = v.ImageURL
+            }).ToList();
+
+            return View(venueVMs);
         }
 
         // GET: Venues/Details/5

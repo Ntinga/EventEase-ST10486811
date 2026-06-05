@@ -1,12 +1,13 @@
-﻿using System;
+﻿using EventEase.Data;
+using EventEase.Models;
+using EventEase.ViewModels;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using MongoDB.Driver;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using EventEase.Data;
-using EventEase.Models;
-using MongoDB.Driver;
 
 namespace EventEase.Controllers
 {
@@ -22,20 +23,20 @@ namespace EventEase.Controllers
         // GET: Bookings
         public async Task<IActionResult> Index(string searchString)
         {
-            var filter = Builders<Booking>.Filter.Empty;
-            var bookingsQuery = _context.Bookings.Find(filter);
+            var bookings = await _context.Bookings.Find(Builders<Booking>.Filter.Empty).ToListAsync();
+            var events = await _context.Events.Find(Builders<Event>.Filter.Empty).ToListAsync();
+            var venues = await _context.Venues.Find(Builders<Venue>.Filter.Empty).ToListAsync();
 
-            if (!string.IsNullOrEmpty(searchString))
+            var bookingVMs = bookings.Select(b => new BookingViewModel
             {
-                filter = Builders<Booking>.Filter.Or(
-                    Builders<Booking>.Filter.Regex(b => b.EventID, new MongoDB.Bson.BsonRegularExpression(searchString, "i")),
-                    Builders<Booking>.Filter.Eq(b => b.BookingID.ToString(), searchString)
-                );
-                bookingsQuery = _context.Bookings.Find(filter);
-            }
+                BookingID = b.BookingID,
+                EventName = events.FirstOrDefault(e => e.EventID == b.EventID)?.EventName ?? "Unknown Event",
+                VenueName = venues.FirstOrDefault(v => v.VenueID == b.VenueID)?.Name ?? "Unknown Venue",
+                StartDate = b.StartDate,
+                EndDate = b.EndDate
+            }).ToList();
 
-            var bookings = await bookingsQuery.ToListAsync();
-            return View(bookings);
+            return View(bookingVMs);
         }
 
         // GET: Bookings/Details/5

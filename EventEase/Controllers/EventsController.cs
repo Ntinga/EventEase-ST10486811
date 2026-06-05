@@ -1,11 +1,12 @@
-﻿using System;
+﻿using EventEase.Data;
+using EventEase.Models;
+using EventEase.ViewModels;
+using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
-using EventEase.Data;
-using EventEase.Models;
 
 namespace EventEase.Controllers
 {
@@ -54,10 +55,30 @@ namespace EventEase.Controllers
         }
 
         // INDEX
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
             var events = await _context.Events.Find(Builders<Event>.Filter.Empty).ToListAsync();
-            return View(events);
+            var eventTypes = await _context.EventTypes.Find(Builders<EventType>.Filter.Empty).ToListAsync();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                events = events.Where(e =>
+                    e.EventName.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                    e.EventID.ToString() == searchString).ToList();
+            }
+
+            var eventVMs = events.Select(e => new EventViewModel
+            {
+                EventID = e.EventID,
+                EventName = e.EventName,
+                Description = e.Description,
+                Venue = e.Venue,
+                EventTypeName = eventTypes.FirstOrDefault(et => et.EventTypeId == e.EventTypeId)?.Name ?? "Unknown Type",
+                StartDate = e.StartDate,
+                EndDate = e.EndDate
+            }).ToList();
+
+            return View(eventVMs);
         }
 
         // DETAILS

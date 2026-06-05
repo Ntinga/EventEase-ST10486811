@@ -3,21 +3,21 @@ using EventEase.Data;
 using EventEase.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using MongoDB.Driver;
 
 namespace EventEase.Controllers
 {
     public class VenuesController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly MongoDbContext _context;
         private readonly BlobServiceClient _blobServiceClient;
 
-        public VenuesController(AppDbContext context, BlobServiceClient blobServiceClient)
+        public VenuesController(MongoDbContext context, BlobServiceClient blobServiceClient)
         {
             _context = context;
             _blobServiceClient = blobServiceClient;
@@ -26,7 +26,8 @@ namespace EventEase.Controllers
         // GET: Venues
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Venues.ToListAsync());
+            var venues = await _context.Venues.Find(Builders<Venue>.Filter.Empty).ToListAsync();
+            return View(venues);
         }
 
         // GET: Venues/Details/5
@@ -34,8 +35,7 @@ namespace EventEase.Controllers
         {
             if (id == null) return NotFound();
 
-            var venue = await _context.Venues
-                .FirstOrDefaultAsync(m => m.VenueID == id);
+            var venue = await _context.Venues.Find(v => v.VenueID == id).FirstOrDefaultAsync();
 
             if (venue == null) return NotFound();
 
@@ -55,28 +55,23 @@ namespace EventEase.Controllers
         {
             if (imageFile != null)
             {
-                //Gettng a container client
                 var containerClient = _blobServiceClient.GetBlobContainerClient("venue-images");
                 await containerClient.CreateIfNotExistsAsync();
 
-                //Creating an unique name for the blob
                 string fileName = Guid.NewGuid().ToString() + System.IO.Path.GetExtension(imageFile.FileName);
                 var blobClient = containerClient.GetBlobClient(fileName);
 
-                //Upload the file
                 using (var stream = imageFile.OpenReadStream())
                 {
                     await blobClient.UploadAsync(stream, true);
                 }
 
-                //Save the URL to the database
                 venue.ImageURL = blobClient.Uri.ToString();
             }
 
             if (ModelState.IsValid)
             {
-                _context.Add(venue);
-                await _context.SaveChangesAsync();
+                await _context.Venues.InsertOneAsync(venue);
                 return RedirectToAction(nameof(Index));
             }
             return View(venue);
@@ -87,7 +82,7 @@ namespace EventEase.Controllers
         {
             if (id == null) return NotFound();
 
-            var venue = await _context.Venues.FindAsync(id);
+            var venue = await _context.Venues.Find(v => v.VenueID == id).FirstOrDefaultAsync();
             if (venue == null) return NotFound();
 
             return View(venue);
@@ -102,16 +97,8 @@ namespace EventEase.Controllers
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(venue);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!VenueExists(venue.VenueID)) return NotFound();
-                    else throw;
-                }
+                var filter = Builders<Venue>.Filter.Eq(v => v.VenueID, id);
+                await _context.Venues.ReplaceOneAsync(filter, venue);
                 return RedirectToAction(nameof(Index));
             }
             return View(venue);
@@ -122,8 +109,7 @@ namespace EventEase.Controllers
         {
             if (id == null) return NotFound();
 
-            var venue = await _context.Venues
-                .FirstOrDefaultAsync(m => m.VenueID == id);
+            var venue = await _context.Venues.Find(v => v.VenueID == id).FirstOrDefaultAsync();
 
             if (venue == null) return NotFound();
 
@@ -135,8 +121,7 @@ namespace EventEase.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            // Check for any bookings tied to this venue
-            bool hasBookings = await _context.Bookings.AnyAsync(b => b.VenueID == id);
+            bool hasBookings = await _context.Bookings.Find(b => b.VenueID == id).AnyAsync();
 
             if (hasBookings)
             {
@@ -144,19 +129,15 @@ namespace EventEase.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var venue = await _context.Venues.FindAsync(id);
-            if (venue != null)
-            {
-                _context.Venues.Remove(venue);
-                await _context.SaveChangesAsync();
-            }
+            var filter = Builders<Venue>.Filter.Eq(v => v.VenueID, id);
+            await _context.Venues.DeleteOneAsync(filter);
 
             return RedirectToAction(nameof(Index));
         }
 
         private bool VenueExists(int id)
         {
-            return _context.Venues.Any(e => e.VenueID == id);
+            return _context.Venues.Find(v => v.VenueID == id).Any();
         }
     }
 }

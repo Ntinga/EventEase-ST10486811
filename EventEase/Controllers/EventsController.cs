@@ -40,7 +40,7 @@ namespace EventEase.Controllers
 
             var events = await _context.Events.Find(filter).ToListAsync();
 
-            // Venue availability filter
+            // Venue availability filter (ensures no overlapping events at same venue)
             events = events.Where(e => !events.Any(ev =>
                 ev.Venue == e.Venue &&
                 ev.EventID != e.EventID &&

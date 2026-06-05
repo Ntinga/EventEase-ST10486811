@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<EventEase.Models.Booking>
+
 @if (TempData["AlertMessage"] != null)
 {
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -6,6 +7,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
+
 @{
     ViewData["Title"] = "Index";
 }
@@ -13,54 +15,65 @@
 <h1>Index</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-success">Create New</a>
 </p>
-<form asp-action="Index" method="get" class="mb-3">
+
+<form asp-action="Index" method="get" class="mb-4">
     <div class="input-group" style="width: 400px;">
         <input type="text" name="searchString" class="form-control" placeholder="Search by Event Name or ID..." />
         <button type="submit" class="btn btn-primary">Search</button>
         <a asp-action="Index" class="btn btn-secondary">Clear</a>
     </div>
 </form>
-<table class="table">
+
+<h3>Manage Bookings</h3>
+<table class="table table-striped mb-5">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.StartDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.EndDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Venue)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Event)
-            </th>
-            <th></th>
+            <th>@Html.DisplayNameFor(model => model.StartDate)</th>
+            <th>@Html.DisplayNameFor(model => model.EndDate)</th>
+            <th>@Html.DisplayNameFor(model => model.VenueID)</th>
+            <th>@Html.DisplayNameFor(model => model.EventID)</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.StartDate)</td>
+                <td>@Html.DisplayFor(modelItem => item.EndDate)</td>
+                <td>@Html.DisplayFor(modelItem => item.VenueID)</td>
+                <td>@Html.DisplayFor(modelItem => item.EventID)</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.BookingID">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.BookingID">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.BookingID">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<hr />
+
+<h2>Bookings Overview</h2>
+<table class="table table-bordered">
+    <thead>
         <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Venue.VenueID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Event.EventID)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.BookingID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.BookingID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.BookingID">Delete</a>
-            </td>
+            <th>Event</th>
+            <th>Venue</th>
+            <th>Start Date</th>
         </tr>
-}
+    </thead>
+    <tbody>
+        @foreach (var booking in Model)
+        {
+            <tr>
+                <td>@booking.EventID</td>
+                <td>@booking.VenueID</td>
+                <td>@booking.StartDate.ToShortDateString()</td>
+            </tr>
+        }
     </tbody>
 </table>

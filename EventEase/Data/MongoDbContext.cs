@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
-using MongoDB.Driver;
 using EventEase.Models;
+using MongoDB.Driver;
 
 namespace EventEase.Data
 {
@@ -8,13 +8,14 @@ namespace EventEase.Data
     {
         private readonly IMongoDatabase _database;
 
-        public MongoDbContext(IConfiguration config)
+        public MongoDbContext(string connectionString, string databaseName)
         {
-            var client = new MongoClient(config["MongoSettings:ConnectionString"]);
-            _database = client.GetDatabase(config["MongoSettings:DatabaseName"]);
+            var client = new MongoClient(connectionString);
+            _database = client.GetDatabase(databaseName);
         }
-
+        public IMongoCollection<Booking> Bookings => _database.GetCollection<Booking>("Bookings");
         public IMongoCollection<Event> Events => _database.GetCollection<Event>("Events");
         public IMongoCollection<EventType> EventTypes => _database.GetCollection<EventType>("EventTypes");
+        public IMongoCollection<Venue> Venues => _database.GetCollection<Venue>("Venues");
     }
 }

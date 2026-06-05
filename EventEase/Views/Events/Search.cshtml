@@ -14,8 +14,8 @@
     </div>
 
     <div class="form-group">
-        <label for="eventType">Event Type</label>
-        @Html.DropDownList("eventType", new SelectList(ViewBag.EventTypes, "Name", "Name"), "All", new { @class = "form-control" })
+        <label for="eventTypeId">Event Type</label>
+        @Html.DropDownList("eventTypeId", new SelectList(ViewBag.EventTypes, "EventTypeId", "Name"), "All", new { @class = "form-control" })
     </div>
 
     <div class="form-group">
@@ -48,7 +48,7 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>@Html.DisplayFor(modelItem => item.EventType)</td>
+                <td>@Html.DisplayFor(modelItem => item.EventType.Name)</td>
                 <td>@Html.DisplayFor(modelItem => item.StartDate)</td>
                 <td>@Html.DisplayFor(modelItem => item.EndDate)</td>
                 <td>@Html.DisplayFor(modelItem => item.Venue)</td>

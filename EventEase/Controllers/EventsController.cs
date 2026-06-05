@@ -18,6 +18,26 @@ namespace EventEase.Controllers
         {
             _context = context;
         }
+        public async Task<IActionResult> Search(string venue, int? eventTypeId, DateTime? startDate, DateTime? endDate)
+        {
+            // Start with all events, including their EventType
+            var query = _context.Events.Include(e => e.EventType).AsQueryable();
+
+            // Filter by venue
+            if (!string.IsNullOrEmpty(venue))
+                query = query.Where(e => e.Venue.Contains(venue));
+
+            // Filter by event type
+            if (eventTypeId.HasValue)
+                query = query.Where(e => e.EventTypeId == eventTypeId);
+
+            // Filter by date range
+            if (startDate.HasValue && endDate.HasValue)
+                query = query.Where(e => e.StartDate >= startDate && e.EndDate <= endDate);
+
+            // Return results to the view
+            return View(await query.ToListAsync());
+        }
 
         // GET: Events
         public async Task<IActionResult> Index()

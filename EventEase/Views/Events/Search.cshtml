@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<EventEase.Models.Event>
+@using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
     ViewData["Title"] = "Search";
@@ -6,7 +7,6 @@
 
 <h1>Search</h1>
 
-<!-- Search Form -->
 <form asp-action="Search" method="get">
     <div class="form-group">
         <label for="venue">Venue</label>
@@ -30,10 +30,6 @@
 
     <button type="submit" class="btn btn-primary">Search</button>
 </form>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
 
 <!-- Results Table -->
 <table class="table">

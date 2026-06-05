@@ -20,22 +20,30 @@ namespace EventEase.Controllers
         }
         public async Task<IActionResult> Search(string venue, int? eventTypeId, DateTime? startDate, DateTime? endDate)
         {
-            // Start with all events, including their EventType
             var query = _context.Events.Include(e => e.EventType).AsQueryable();
 
-            // Filter by venue
+            // Venue filter
             if (!string.IsNullOrEmpty(venue))
                 query = query.Where(e => e.Venue.Contains(venue));
 
-            // Filter by event type
+            // EventType filter
             if (eventTypeId.HasValue)
                 query = query.Where(e => e.EventTypeId == eventTypeId);
 
-            // Filter by date range
+            // Date range filter
             if (startDate.HasValue && endDate.HasValue)
                 query = query.Where(e => e.StartDate >= startDate && e.EndDate <= endDate);
 
-            // Return results to the view
+            // Venue availability filter (no overlapping events at same venue)
+            query = query.Where(e => !_context.Events.Any(ev =>
+                ev.Venue == e.Venue &&
+                ev.EventID != e.EventID &&
+                ev.StartDate < e.EndDate &&
+                ev.EndDate > e.StartDate));
+
+            // Pass EventTypes to view for dropdown
+            ViewBag.EventTypes = await _context.EventTypes.ToListAsync();
+
             return View(await query.ToListAsync());
         }
 

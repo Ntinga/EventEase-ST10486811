@@ -4,7 +4,7 @@
     {
         public int EventID { get; set; }
         public int EventTypeId { get; set; }
-        public EventType? EventType { get; set; }
+        public EventType EventType { get; set; } = new EventType();
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Venue { get; set; } = string.Empty;
